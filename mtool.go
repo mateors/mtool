@@ -23,7 +23,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-//CheckMultipleConditionTrue ..
+//CheckMultipleConditionTrue this func is used for checking multiple conditions valid or ERROR
 func CheckMultipleConditionTrue(formData url.Values, funcsMap map[string]interface{}, db *mcb.DB) string {
 
 	var response string
