@@ -2,4 +2,4 @@
 mateors web app necessary 
 
 #How to install?
-> go get github.com/mateors/
+> go get github.com/mateors/mtool
