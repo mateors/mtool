@@ -7,7 +7,7 @@ mateors web app necessary
 # Documentation
 
 
-### package mtool // import "mateors/lib/mtool"
+#### package mtool // import "mateors/lib/mtool"
 
 
 # VARIABLES
