@@ -108,7 +108,7 @@ var FuncMap = template.FuncMap{
 - func Foo()
     Foo test func
 
-func FormateDate(date string) (fdate string)
+- func FormateDate(date string) (fdate string)
     FormateDate date formatter
 
 - func GenerateBlockNumber() (blockNumber string)
@@ -181,7 +181,7 @@ func FormateDate(date string) (fdate string)
 - func RegExFindMatch(pattern, data string) (match []string)
     RegExFindMatch find pattern in data string
 
-func RemoveFromSlice(s []string, i int) []string
+- func RemoveFromSlice(s []string, i int) []string
     RemoveFromSlice Remove an item from a slice
 
 - func RemoveFromSliceByValue(s []string, value string) []string
