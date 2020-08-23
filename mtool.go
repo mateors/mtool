@@ -128,7 +128,7 @@ func GetMapValue(mapData map[string]string, key string) (val string) {
 	return
 }
 
-//stringToMap comma separated string to map
+//StringToMap comma separated string to map
 //input=access_name:student,cid:1,login_id:2
 //output=map[access_name:student cid:1 login_id:2]
 func StringToMap(output string) map[string]string {
@@ -145,7 +145,7 @@ func StringToMap(output string) map[string]string {
 	return sMap
 }
 
-//mapToString map to string comma separated
+//MapToString map to string comma separated
 //input=map[access_name:student cid:1 login_id:2]
 //output=access_name:student,cid:1,login_id:2
 func MapToString(sRow map[string]string) string {
