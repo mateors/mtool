@@ -131,7 +131,7 @@ func GetMapValue(mapData map[string]string, key string) (val string) {
 //stringToMap comma separated string to map
 //input=access_name:student,cid:1,login_id:2
 //output=map[access_name:student cid:1 login_id:2]
-func stringToMap(output string) map[string]string {
+func StringToMap(output string) map[string]string {
 
 	sMap := make(map[string]string, 0)
 	slice := strings.Split(output, ",")
@@ -148,7 +148,7 @@ func stringToMap(output string) map[string]string {
 //mapToString map to string comma separated
 //input=map[access_name:student cid:1 login_id:2]
 //output=access_name:student,cid:1,login_id:2
-func mapToString(sRow map[string]string) string {
+func MapToString(sRow map[string]string) string {
 
 	var output string
 	for key, val := range sRow {
