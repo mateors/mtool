@@ -25,7 +25,31 @@ import (
 	"github.com/avct/uasurfer"
 	"github.com/mateors/money"
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
+
+//HashCompare compare plaintext password with hash text
+func HashCompare(password, hashpassword string) bool {
+
+	err := bcrypt.CompareHashAndPassword([]byte(hashpassword), []byte(password))
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+//HashBcrypt Generate string to hash
+func HashBcrypt(password string) (hash string) {
+
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
+		hash = err.Error()
+		return
+	}
+	hash = string(bytes)
+	return
+}
 
 //EncodeStr ------------
 func EncodeStr(text, password string) (hexcode string) {
