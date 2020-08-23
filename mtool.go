@@ -184,7 +184,7 @@ func BrowserInfo(userAgent, battery string) map[string]string {
 	ua := uasurfer.Parse(userAgent)
 	device := ua.DeviceType.StringTrimPrefix()
 
-	if battery == "true" && device == "Computer" {
+	if battery == "true" {
 		device = "Laptop"
 
 	} else if battery == "false" && device == "Computer" {
