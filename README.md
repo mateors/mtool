@@ -4,8 +4,10 @@ mateors web app necessary
 # How to install?
 > go get github.com/mateors/mtool
 
-# Documentation
+# How to get latest update of this package?
+> go get -u github.com/mateors/mtool
 
+# Documentation
 
 #### package mtool // import "mateors/lib/mtool"
 
