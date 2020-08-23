@@ -1,14 +1,17 @@
 package mtool
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
-	"mateors/lib/dbf"
-
-	"mateors/lib/money"
 	"math"
 	"net/http"
 	"net/url"
@@ -20,45 +23,116 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
-	"github.com/mateors/mcb"
+	"github.com/mateors/money"
 	uuid "github.com/satori/go.uuid"
 )
 
-//CheckMultipleConditionTrue this func is used for checking multiple conditions valid or ERROR
-func CheckMultipleConditionTrue(formData url.Values, funcsMap map[string]interface{}, db *mcb.DB) string {
+//EncodeStr ------------
+func EncodeStr(text, password string) (hexcode string) {
 
-	var response string
-	// funcs := map[string]interface{}{
-	// 	"pass": passAndConfirmPassCheck,
-	// 	"dup":  duplicateUserName,
-	// }
+	ciphertext := encrypt([]byte(text), password)
+	hexcode = fmt.Sprintf("%x", ciphertext)
+	return
+}
 
-	resAray := make([]string, 0)
+//DecodeStr ...
+func DecodeStr(hexcode, password string) (plaintext string) {
 
-	for key := range funcsMap {
+	data, err := hex.DecodeString(hexcode)
+	if err != nil {
+		panic(err)
+	}
+	byteStr := decrypt(data, password)
+	plaintext = fmt.Sprintf("%s", byteStr)
 
-		//fmt.Printf("%v %v type: %T\n", key, v, v)
-		result, err := Call(funcsMap, key, formData, db) //result is type of []reflect.Value
-		if err != nil {
-			log.Println(err)
+	return
+}
+
+func createHash(key string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(key))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func encrypt(data []byte, passphrase string) []byte {
+
+	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+	return ciphertext
+}
+
+func decrypt(data []byte, passphrase string) []byte {
+
+	key := []byte(createHash(passphrase))
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	return plaintext
+}
+
+//ValueType ...
+func ValueType(v interface{}) string {
+	xType := reflect.ValueOf(v).Kind().String()
+	return xType
+}
+
+//GetMapValue safer way to get value from map
+func GetMapValue(mapData map[string]string, key string) (val string) {
+
+	if v, isOk := mapData[key]; isOk {
+		val = v
+	}
+	return
+}
+
+//stringToMap comma separated string to map
+//input=access_name:student,cid:1,login_id:2
+//output=map[access_name:student cid:1 login_id:2]
+func stringToMap(output string) map[string]string {
+
+	sMap := make(map[string]string, 0)
+	slice := strings.Split(output, ",")
+
+	for _, val := range slice {
+		slc := strings.Split(val, ":")
+		if len(slc) == 2 {
+			sMap[slc[0]] = slc[1]
 		}
-		res := result[0].Interface().(string) //Converting reflect.Value to string
-		//fmt.Printf("**** Response: %v, error: %v, ResType: %T, %T ***\n\n", res, err, result[0], res)
-		resAray = append(resAray, res)
-
 	}
+	return sMap
+}
 
-	//fmt.Printf("\n## REPONSE ARRAY: %v\n\n", resAray)
-	i, errorExist := ErrorInSlice(resAray, "ERROR")
-	if errorExist == true {
-		response = fmt.Sprintf("%v", resAray[i]) //ERROR EXIST in CheckError =>>
-		//fmt.Println(response)
-	} else {
-		response = "OKAY"
+//mapToString map to string comma separated
+//input=map[access_name:student cid:1 login_id:2]
+//output=access_name:student,cid:1,login_id:2
+func mapToString(sRow map[string]string) string {
+
+	var output string
+	for key, val := range sRow {
+		str := fmt.Sprintf("%s:%v", key, val)
+		output += str + ","
 	}
-
-	return response
-
+	output = strings.TrimRight(output, ",")
+	return output
 }
 
 //ReadUserIP read ip from http pointer to request
@@ -808,44 +882,6 @@ func RemoveFromSlice(s []string, i int) []string {
 
 }
 
-//CheckError error checklist for signup || check Multiple Condition
-func CheckError(formData url.Values, db *sql.DB) string {
-
-	var response string
-
-	funcs := map[string]interface{}{
-		// "foo": tool.Foo,
-		// "bar": tool.Bar,
-		"pass": passAndConfirmPassCheck,
-		"dup":  duplicateUserName,
-	}
-
-	resAray := make([]string, 0)
-	for key := range funcs {
-
-		//fmt.Printf("%v %v type: %T\n", key, v, v)
-		result, err := Call(funcs, key, formData, db) //result is type of []reflect.Value
-		if err != nil {
-			log.Println(err)
-		}
-		res := result[0].Interface().(string) //Converting reflect.Value to string
-		//fmt.Printf("**** Response: %v, error: %v, ResType: %T, %T ***\n\n", res, err, result[0], res)
-		resAray = append(resAray, res)
-
-	}
-
-	//fmt.Printf("\n## REPONSE ARRAY: %v\n\n", resAray)
-	i, errorExist := ErrorInSlice(resAray, "ERROR")
-	if errorExist == true {
-		response = fmt.Sprintf("%v", resAray[i]) //ERROR EXIST in CheckError =>>
-		//fmt.Println(response)
-	} else {
-		response = "OKAY"
-	}
-
-	return response
-}
-
 //ErrorInSlice to detect error in a string
 func ErrorInSlice(slice []string, val string) (int, bool) {
 
@@ -884,49 +920,6 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 	result = f.Call(in)
 	return
 
-}
-
-func passAndConfirmPassCheck(req url.Values, db *sql.DB) string {
-
-	response := "ERROR password and confirm password does not match."
-	password := req.Get("password")
-	confirmPassword := req.Get("confirm_password")
-
-	if password == confirmPassword {
-		response = "valid"
-	}
-	return response
-}
-
-//formData map[string][]string)
-func duplicateUserName(req url.Values, db *sql.DB) string {
-
-	response := fmt.Sprintf("ERROR user %v already exist", req.Get("email"))
-	length := len(req)
-	//fmt.Printf("duplicateUserName FORM_DATA: %v, LENGTH: %v\n", req, length)
-
-	if length > 2 {
-
-		email := req.Get("email")
-		whereClause := fmt.Sprintf("username='%v'", email)
-		count := dbf.CheckCount("login", whereClause, db)
-		//fmt.Printf("USER_COUNT: %v\n", count)
-
-		if count == 0 && email != "" {
-			response = "valid"
-		}
-	}
-	return response
-}
-
-//Foo test func
-func Foo() {
-	fmt.Println("we are running foo")
-}
-
-//Bar test func
-func Bar(a, b, c int) {
-	fmt.Println("we are running bar", a, b, c)
 }
 
 // how many digit's groups to process
