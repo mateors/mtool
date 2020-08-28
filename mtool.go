@@ -28,6 +28,37 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//StructToFieldsType get struct to its field_name and data type
+func StructToFieldsType(structRef interface{}) map[string]string {
+
+	oMap := make(map[string]string, 0)
+	iVal := reflect.ValueOf(structRef).Elem()
+	typ := iVal.Type()
+	for i := 0; i < iVal.NumField(); i++ {
+
+		f := iVal.Field(i)
+		tag := typ.Field(i).Tag.Get("json")
+		vtype := f.Kind().String()
+		if _, isExist := oMap[tag]; isExist == false {
+			oMap[tag] = vtype
+		}
+	}
+	return oMap
+}
+
+//StructToFields structToFields
+func StructToFields(structRef interface{}) []string {
+
+	cols := make([]string, 0)
+	iVal := reflect.ValueOf(structRef).Elem()
+	typ := iVal.Type()
+	for i := 0; i < iVal.NumField(); i++ {
+		tag := typ.Field(i).Tag.Get("json")
+		cols = append(cols, tag)
+	}
+	return cols
+}
+
 //HashCompare compare plaintext password with hash text
 func HashCompare(password, hashpassword string) bool {
 
