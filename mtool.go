@@ -28,6 +28,28 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//GetVarType any variable to its underlysing data type
+func GetVarType(myvar interface{}) string {
+
+	varType := reflect.TypeOf(myvar).Kind().String()
+
+	return varType
+}
+
+//GetStructName get struct to its name
+func GetStructName(myvar interface{}) string {
+
+	var structName string
+	valueOf := reflect.ValueOf(myvar)
+
+	if valueOf.Type().Kind() == reflect.Ptr {
+		structName = reflect.Indirect(valueOf).Type().Name()
+	} else {
+		structName = valueOf.Type().Name()
+	}
+	return structName
+}
+
 //StructToFieldsType get struct to its field_name and data type
 func StructToFieldsType(structRef interface{}) map[string]string {
 
