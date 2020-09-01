@@ -28,6 +28,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//TimeNow current system time mysql datetime format
+//2006-01-02 15:04:05 = 4digitYear-2digitMonth-2digitDate 24HourFormatHour:minute:second
+func TimeNow() string {
+	t1 := time.Now()
+	createDate := t1.Format("2006-01-02 15:04:05")
+	return createDate
+}
+
+//TimeNowFormatted "2006-01-02 15:04:05"
+//Any format you wish as an output
+func TimeNowFormatted(timeFormat string) string {
+	t1 := time.Now()
+	createDate := t1.Format(timeFormat)
+	return createDate
+}
+
 //GetVarType any variable to its underlysing data type
 func GetVarType(myvar interface{}) string {
 
