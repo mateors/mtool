@@ -28,6 +28,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//ToString take one argument of any dataType and convert into string
+func ToString(data interface{}) string {
+
+	return fmt.Sprintf("%v", data)
+
+}
+
 //TimeNow current system time mysql datetime format
 //2006-01-02 15:04:05 = 4digitYear-2digitMonth-2digitDate 24HourFormatHour:minute:second
 func TimeNow() string {
