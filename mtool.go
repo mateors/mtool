@@ -438,7 +438,7 @@ func ArrayFind(array []string, value string) (bool, int) {
 
 	indx := ReturnIndexByValue(array, value)
 	if indx == -1 {
-		fmt.Println("NOT FOUND")
+		//fmt.Println("NOT FOUND")
 		return false, -1
 	}
 
