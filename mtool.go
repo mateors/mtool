@@ -898,6 +898,27 @@ func RequestURLtoPage(requestURI string) (pageName, query string) {
 	return
 }
 
+//GeneratePaddingStringLeft ..
+func GeneratePaddingStringLeft(seed interface{}, padStr string, length int) (retStr string) {
+
+	//padding := fmt.Sprintf("%dv", length) //8v
+	//pattern := "%0" + padding             //%08v
+	//paddingString = fmt.Sprintf(pattern, seed)
+	paddingString := fmt.Sprintf("%v", seed)
+	var padCountInt = 1 + ((length - len(padStr)) / len(padStr))
+	retStr = strings.Repeat(padStr, padCountInt) + paddingString
+	return retStr[(len(retStr) - length):]
+}
+
+//GeneratePaddingStringRight ...
+func GeneratePaddingStringRight(seed interface{}, padStr string, length int) (retStr string) {
+
+	paddingString := fmt.Sprintf("%v", seed)
+	var padCountInt = 1 + ((length - len(padStr)) / len(padStr))
+	retStr = paddingString + strings.Repeat(padStr, padCountInt)
+	return retStr[:length]
+}
+
 //GenerateBlockNumber unique hexa code
 func GenerateBlockNumber() (blockNumber string) {
 
