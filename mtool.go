@@ -898,8 +898,8 @@ func RequestURLtoPage(requestURI string) (pageName, query string) {
 	return
 }
 
-//GeneratePaddingStringLeft ..
-func GeneratePaddingStringLeft(seed interface{}, padStr string, length int) (retStr string) {
+//PaddingLeft ..
+func PaddingLeft(seed interface{}, padStr string, length int) (retStr string) {
 
 	//padding := fmt.Sprintf("%dv", length) //8v
 	//pattern := "%0" + padding             //%08v
@@ -910,8 +910,8 @@ func GeneratePaddingStringLeft(seed interface{}, padStr string, length int) (ret
 	return retStr[(len(retStr) - length):]
 }
 
-//GeneratePaddingStringRight ...
-func GeneratePaddingStringRight(seed interface{}, padStr string, length int) (retStr string) {
+//PaddingRight ...
+func PaddingRight(seed interface{}, padStr string, length int) (retStr string) {
 
 	paddingString := fmt.Sprintf("%v", seed)
 	var padCountInt = 1 + ((length - len(padStr)) / len(padStr))
