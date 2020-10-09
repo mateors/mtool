@@ -73,6 +73,21 @@ func GetStructName(myvar interface{}) string {
 	return structName
 }
 
+//MapToCleanFieldSlice ...
+func MapToCleanFieldSlice(sfMap map[string]string) []string {
+
+	var fields = []string{}
+	for k := range sfMap {
+		//fmt.Println(">", k)
+		v := strings.Split(k, ",")
+		if len(v) > 0 {
+			fields = append(fields, v[0])
+		}
+	}
+
+	return fields
+}
+
 //StructToFieldsType get struct to its field_name and data type
 func StructToFieldsType(structRef interface{}) map[string]string {
 
@@ -200,6 +215,15 @@ func GetMapValue(mapData map[string]string, key string) (val string) {
 
 	if v, isOk := mapData[key]; isOk {
 		val = v
+	}
+	return
+}
+
+//GetMapValueI safer way to get value from map
+func GetMapValueI(mapData map[string]interface{}, key string) (val string) {
+
+	if v, isOk := mapData[key]; isOk {
+		val = v.(string)
 	}
 	return
 }
