@@ -237,9 +237,10 @@ func StringToMap(output string) map[string]string {
 	slice := strings.Split(output, ",")
 
 	for _, val := range slice {
-		slc := strings.Split(val, ":")
-		if len(slc) == 2 {
-			sMap[slc[0]] = slc[1]
+		//slc := strings.Split(val, ":")
+		slc := RegExFindMatch(`(.*):(.*)`, val)
+		if len(slc) == 3 {
+			sMap[slc[1]] = slc[2]
 		}
 	}
 	return sMap
