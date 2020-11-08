@@ -238,9 +238,10 @@ func StringToMap(output string) map[string]string {
 
 	for _, val := range slice {
 		//slc := strings.Split(val, ":")
-		slc := RegExFindMatch(`(.*):(.*)`, val)
+		slc := RegExFindMatch(`([a-zA-Z_]*):(.*)`, val)
 		if len(slc) == 3 {
 			sMap[slc[1]] = slc[2]
+			//fmt.Println(slc[1], "-->", len(slc[1]))
 		}
 	}
 	return sMap
@@ -268,12 +269,12 @@ func ReadUserIP(r *http.Request) string {
 		return IPAddress
 	}
 
-	IPAddress = r.FormValue("ip") //r.RemoteAddr
+	IPAddress = r.Header.Get("X-Forwarded-For")
 	if IPAddress != "" {
 		return IPAddress
 	}
 
-	IPAddress = r.Header.Get("X-Forwarded-For")
+	IPAddress = r.FormValue("ip") //r.RemoteAddr
 	if IPAddress != "" {
 		return IPAddress
 	}
