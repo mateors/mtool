@@ -316,7 +316,7 @@ func StartEndDate(dateTime, layout string) (startDate, endDate string) {
 //GenerateVisitorSession using uuid
 func GenerateVisitorSession() string {
 
-	v1, _ := uuid.NewV1()
+	v1 := uuid.NewV1()
 	v1string := fmt.Sprintf("%v", v1)
 
 	return strings.ToUpper(v1string)
@@ -948,7 +948,7 @@ func PaddingRight(seed interface{}, padStr string, length int) (retStr string) {
 //GenerateBlockNumber unique hexa code
 func GenerateBlockNumber() (blockNumber string) {
 
-	v1, _ := uuid.NewV1()
+	v1 := uuid.NewV1()
 	v1string := fmt.Sprintf("%x", v1)
 	blockNumber = strings.ToUpper(v1string[0:12])
 
@@ -965,7 +965,7 @@ func GenerateLedgerNumber(prefix, suffix string) (ledgerNumber string) {
 //GenerateDocNumber to Generate random unique document number
 func GenerateDocNumber(prefix string) (docNumber string) {
 
-	v1, _ := uuid.NewV1()
+	v1 := uuid.NewV1()
 	v1string := fmt.Sprintf("%s", v1)
 	randomValue := strings.ToUpper(v1string[0:8])
 	docNumber = fmt.Sprintf("%v%v", prefix, randomValue)
