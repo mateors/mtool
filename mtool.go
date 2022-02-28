@@ -289,17 +289,17 @@ func ReadUserIP(r *http.Request) string {
 		return IPAddress
 	}
 	
-	IPAddress := r.Header.Get("X-Real-Ip")
+	IPAddress = r.Header.Get("X-Real-Ip")
 	if IPAddress != "" {
 		return IPAddress
 	}
 	
-	IPAddress := r.Header.Get("X-Cluster-Client-IP")
+	IPAddress = r.Header.Get("X-Cluster-Client-IP")
 	if IPAddress != "" {
 		return IPAddress
 	}
 
-	IPAddress := r.Header.Get("X-Forwarded")
+	IPAddress = r.Header.Get("X-Forwarded")
 	if IPAddress != "" {
 		return IPAddress
 	}
