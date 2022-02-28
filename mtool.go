@@ -264,16 +264,46 @@ func MapToString(sRow map[string]string) string {
 //ReadUserIP read ip from http pointer to request
 func ReadUserIP(r *http.Request) string {
 
-	IPAddress := r.Header.Get("X-Real-Ip")
+	IPAddress := r.Header.Get("X-Client-IP")
 	if IPAddress != "" {
 		return IPAddress
 	}
-
+	
 	IPAddress = r.Header.Get("X-Forwarded-For")
 	if IPAddress != "" {
 		return IPAddress
 	}
+	
+	IPAddress = r.Header.Get("CF-Connecting-IP")
+	if IPAddress != "" {
+		return IPAddress
+	}
+	
+	IPAddress = r.Header.Get("Fastly-Client-Ip")
+	if IPAddress != "" {
+		return IPAddress
+	}
+	
+	IPAddress = r.Header.Get("True-Client-Ip")
+	if IPAddress != "" {
+		return IPAddress
+	}
+	
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress != "" {
+		return IPAddress
+	}
+	
+	IPAddress := r.Header.Get("X-Cluster-Client-IP")
+	if IPAddress != "" {
+		return IPAddress
+	}
 
+	IPAddress := r.Header.Get("X-Forwarded")
+	if IPAddress != "" {
+		return IPAddress
+	}
+	
 	IPAddress = r.FormValue("ip") //r.RemoteAddr
 	if IPAddress != "" {
 		return IPAddress
