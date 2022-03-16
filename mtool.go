@@ -824,8 +824,8 @@ func GetSign(voucherName string) (sign string) {
 	plusAray := []string{"Balance Add", "Add", "Add Balance"}
 	minusAray := []string{"Balance Transfer", "Transfer"}
 
-	_, inPlus := stringInSlice(plusAray, voucherName)
-	_, inMinus := stringInSlice(minusAray, voucherName)
+	_, inPlus := StringInSlice(plusAray, voucherName)
+	_, inMinus := StringInSlice(minusAray, voucherName)
 
 	if inPlus == true {
 		sign = "+"
