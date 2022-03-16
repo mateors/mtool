@@ -1072,7 +1072,7 @@ func ErrorInSlice(slice []string, val string) (int, bool) {
 	return -1, false
 }
 
-func stringInSlice(slice []string, val string) (int, bool) {
+func StringInSlice(slice []string, val string) (int, bool) {
 	for i, item := range slice {
 		if item == val {
 			return i, true
