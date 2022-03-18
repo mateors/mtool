@@ -1212,3 +1212,26 @@ func separator(useAnd bool) string {
 	}
 	return " "
 }
+
+func DateInBetween(dateFormat, compareDate, startDate, endDate string) bool {
+
+	comp, err := time.Parse(dateFormat, compareDate)
+	if err != nil {
+		return false
+	}
+
+	start, err := time.Parse(dateFormat, startDate)
+	if err != nil {
+		return false
+	}
+
+	end, err := time.Parse(dateFormat, endDate)
+	if err != nil {
+		return false
+	}
+
+	if (comp.Equal(start) || comp.After(start)) && (comp.Equal(end) || comp.Before(end)) {
+		return true
+	}
+	return false
+}
