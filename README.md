@@ -224,3 +224,6 @@ var FuncMap = template.FuncMap{
 
 - func WishList(productID string, wisthList []map[string]interface{}) bool
     WishList check if product_id exist in whishlist
+    
+- func DayCountBetweenTwoDates(startDate, endDate) int
+    count number of days between two given date
