@@ -1235,3 +1235,19 @@ func DateInBetween(dateFormat, compareDate, startDate, endDate string) bool {
 	}
 	return false
 }
+
+func DayCountBetweenTwoDates(startDate, endDate string) int {
+
+	a, _ := time.Parse("2006-01-02", startDate)
+	b, _ := time.Parse("2006-01-02", endDate)
+
+	if a.After(b) {
+		a, b = b, a
+	}
+	dayCount := -a.YearDay()
+	for year := a.Year(); year < b.Year(); year++ {
+		dayCount += time.Date(year, time.December, 31, 0, 0, 0, 0, time.UTC).YearDay()
+	}
+	dayCount += b.YearDay()
+	return dayCount
+}
