@@ -1251,3 +1251,13 @@ func DayCountBetweenTwoDates(startDate, endDate string) int {
 	dayCount += b.YearDay()
 	return dayCount
 }
+
+//Generics implementation, golang version 1.18 required
+func SliceValueExist[T comparable](s []T, v T) bool {
+	for _, val := range s {
+		if v == val {
+			return true
+		}
+	}
+	return false
+}
