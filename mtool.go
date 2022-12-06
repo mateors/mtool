@@ -28,30 +28,30 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//ToString take one argument of any dataType and convert into string
+// ToString take one argument of any dataType and convert into string
 func ToString(data interface{}) string {
 
 	return fmt.Sprintf("%v", data)
 
 }
 
-//TimeNow current system time mysql datetime format
-//2006-01-02 15:04:05 = 4digitYear-2digitMonth-2digitDate 24HourFormatHour:minute:second
+// TimeNow current system time mysql datetime format
+// 2006-01-02 15:04:05 = 4digitYear-2digitMonth-2digitDate 24HourFormatHour:minute:second
 func TimeNow() string {
 	t1 := time.Now()
 	createDate := t1.Format("2006-01-02 15:04:05")
 	return createDate
 }
 
-//TimeNowFormatted "2006-01-02 15:04:05"
-//Any format you wish as an output
+// TimeNowFormatted "2006-01-02 15:04:05"
+// Any format you wish as an output
 func TimeNowFormatted(timeFormat string) string {
 	t1 := time.Now()
 	createDate := t1.Format(timeFormat)
 	return createDate
 }
 
-//GetVarType any variable to its underlysing data type
+// GetVarType any variable to its underlysing data type
 func GetVarType(myvar interface{}) string {
 
 	varType := reflect.TypeOf(myvar).Kind().String()
@@ -59,7 +59,7 @@ func GetVarType(myvar interface{}) string {
 	return varType
 }
 
-//GetStructName get struct to its name
+// GetStructName get struct to its name
 func GetStructName(myvar interface{}) string {
 
 	var structName string
@@ -73,7 +73,7 @@ func GetStructName(myvar interface{}) string {
 	return structName
 }
 
-//MapToCleanFieldSlice ...
+// MapToCleanFieldSlice ...
 func MapToCleanFieldSlice(sfMap map[string]string) []string {
 
 	var fields = []string{}
@@ -88,7 +88,7 @@ func MapToCleanFieldSlice(sfMap map[string]string) []string {
 	return fields
 }
 
-//StructToFieldsType get struct to its field_name and data type
+// StructToFieldsType get struct to its field_name and data type
 func StructToFieldsType(structRef interface{}) map[string]string {
 
 	oMap := make(map[string]string, 0)
@@ -106,7 +106,7 @@ func StructToFieldsType(structRef interface{}) map[string]string {
 	return oMap
 }
 
-//StructToFields structToFields
+// StructToFields structToFields
 func StructToFields(structRef interface{}) []string {
 
 	cols := make([]string, 0)
@@ -119,7 +119,7 @@ func StructToFields(structRef interface{}) []string {
 	return cols
 }
 
-//HashCompare compare plaintext password with hash text
+// HashCompare compare plaintext password with hash text
 func HashCompare(password, hashpassword string) bool {
 
 	err := bcrypt.CompareHashAndPassword([]byte(hashpassword), []byte(password))
@@ -130,7 +130,7 @@ func HashCompare(password, hashpassword string) bool {
 	return true
 }
 
-//HashBcrypt Generate string to hash
+// HashBcrypt Generate string to hash
 func HashBcrypt(password string) (hash string) {
 
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -142,24 +142,31 @@ func HashBcrypt(password string) (hash string) {
 	return
 }
 
-//EncodeStr ------------
+// EncodeStr ------------
 func EncodeStr(text, password string) (hexcode string) {
 
-	ciphertext := encrypt([]byte(text), password)
+	ciphertext, err := encrypt([]byte(text), password)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
 	hexcode = fmt.Sprintf("%x", ciphertext)
 	return
 }
 
-//DecodeStr ...
+// DecodeStr ...
 func DecodeStr(hexcode, password string) (plaintext string) {
 
 	data, err := hex.DecodeString(hexcode)
 	if err != nil {
-		panic(err)
+		log.Println(err)
+		return ""
 	}
-	byteStr := decrypt(data, password)
-	plaintext = fmt.Sprintf("%s", byteStr)
-
+	byteStr, err := decrypt(data, password)
+	if err != nil {
+		return ""
+	}
+	plaintext = string(byteStr)
 	return
 }
 
@@ -169,48 +176,48 @@ func createHash(key string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func encrypt(data []byte, passphrase string) []byte {
+func encrypt(data []byte, passphrase string) ([]byte, error) {
 
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
-	return ciphertext
+	return ciphertext, nil
 }
 
-func decrypt(data []byte, passphrase string) []byte {
+func decrypt(data []byte, passphrase string) ([]byte, error) {
 
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
-	return plaintext
+	return plaintext, nil
 }
 
-//ValueType ...
+// ValueType ...
 func ValueType(v interface{}) string {
 	xType := reflect.ValueOf(v).Kind().String()
 	return xType
 }
 
-//GetMapValue safer way to get value from map
+// GetMapValue safer way to get value from map
 func GetMapValue(mapData map[string]string, key string) (val string) {
 
 	if v, isOk := mapData[key]; isOk {
@@ -219,7 +226,7 @@ func GetMapValue(mapData map[string]string, key string) (val string) {
 	return
 }
 
-//GetMapValueI safer way to get value from map
+// GetMapValueI safer way to get value from map
 func GetMapValueI(mapData map[string]interface{}, key string) (val string) {
 
 	if v, isOk := mapData[key]; isOk {
@@ -228,9 +235,9 @@ func GetMapValueI(mapData map[string]interface{}, key string) (val string) {
 	return
 }
 
-//StringToMap comma separated string to map
-//input=access_name:student,cid:1,login_id:2
-//output=map[access_name:student cid:1 login_id:2]
+// StringToMap comma separated string to map
+// input=access_name:student,cid:1,login_id:2
+// output=map[access_name:student cid:1 login_id:2]
 func StringToMap(output string) map[string]string {
 
 	sMap := make(map[string]string, 0)
@@ -247,9 +254,9 @@ func StringToMap(output string) map[string]string {
 	return sMap
 }
 
-//MapToString map to string comma separated
-//input=map[access_name:student cid:1 login_id:2]
-//output=access_name:student,cid:1,login_id:2
+// MapToString map to string comma separated
+// input=map[access_name:student cid:1 login_id:2]
+// output=access_name:student,cid:1,login_id:2
 func MapToString(sRow map[string]string) string {
 
 	var output string
@@ -261,39 +268,39 @@ func MapToString(sRow map[string]string) string {
 	return output
 }
 
-//ReadUserIP read ip from http pointer to request
+// ReadUserIP read ip from http pointer to request
 func ReadUserIP(r *http.Request) string {
 
 	IPAddress := r.Header.Get("X-Client-IP")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("X-Forwarded-For")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("CF-Connecting-IP")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("Fastly-Client-Ip")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("True-Client-Ip")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("X-Real-Ip")
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.Header.Get("X-Cluster-Client-IP")
 	if IPAddress != "" {
 		return IPAddress
@@ -303,7 +310,7 @@ func ReadUserIP(r *http.Request) string {
 	if IPAddress != "" {
 		return IPAddress
 	}
-	
+
 	IPAddress = r.FormValue("ip") //r.RemoteAddr
 	if IPAddress != "" {
 		return IPAddress
@@ -321,7 +328,7 @@ func ReadUserIP(r *http.Request) string {
 	return IPAddress
 }
 
-//StartEndDate takes two argument, both are string, dateTime="", layout := "2006-01-02 03:04:05"
+// StartEndDate takes two argument, both are string, dateTime="", layout := "2006-01-02 03:04:05"
 func StartEndDate(dateTime, layout string) (startDate, endDate string) {
 
 	//layout := "2006-01-02 03:04:05"
@@ -343,7 +350,7 @@ func StartEndDate(dateTime, layout string) (startDate, endDate string) {
 	return
 }
 
-//GenerateVisitorSession using uuid
+// GenerateVisitorSession using uuid
 func GenerateVisitorSession() string {
 
 	v1 := uuid.NewV1()
@@ -363,7 +370,7 @@ func formatCommas(num int) string {
 	return str
 }
 
-//CleanText takes any string containing any character and return Alphanumeric
+// CleanText takes any string containing any character and return Alphanumeric
 func CleanText(example string) string {
 
 	reg, err := regexp.Compile("[^a-zA-Z0-9 ]+")
@@ -375,7 +382,7 @@ func CleanText(example string) string {
 	return processedString
 }
 
-//SQLNullString for sql null char
+// SQLNullString for sql null char
 func SQLNullString(s interface{}) sql.NullString {
 
 	d := fmt.Sprintf("%v", s)
@@ -389,7 +396,7 @@ func SQLNullString(s interface{}) sql.NullString {
 	}
 }
 
-//BrowserInfo2 parse useragent to map
+// BrowserInfo2 parse useragent to map
 func BrowserInfo2(userAgent string) map[string]string {
 
 	info := make(map[string]string, 0)
@@ -404,7 +411,7 @@ func BrowserInfo2(userAgent string) map[string]string {
 	return info
 }
 
-//BrowserInfo parse useragent to map
+// BrowserInfo parse useragent to map
 func BrowserInfo(userAgent, battery string) map[string]string {
 
 	info := make(map[string]string, 0)
@@ -433,7 +440,7 @@ func BrowserInfo(userAgent, battery string) map[string]string {
 
 }
 
-//CheckFileOrFolderExist takes one argument
+// CheckFileOrFolderExist takes one argument
 func CheckFileOrFolderExist(dirName string) bool {
 
 	if _, err := os.Stat(dirName); os.IsNotExist(err) {
@@ -442,7 +449,7 @@ func CheckFileOrFolderExist(dirName string) bool {
 	return true
 }
 
-//RegExFindMatch find pattern in data string
+// RegExFindMatch find pattern in data string
 func RegExFindMatch(pattern, data string) (match []string) {
 
 	var myExp = regexp.MustCompile(pattern)
@@ -451,7 +458,7 @@ func RegExFindMatch(pattern, data string) (match []string) {
 	return
 }
 
-//IPAddress [::1] to fresh ip
+// IPAddress [::1] to fresh ip
 func IPAddress(RemoteAddr string) (ipaddress string) {
 
 	matchA := RegExFindMatch(`^\[(.*)\]:(\d+)$`, RemoteAddr)
@@ -461,7 +468,7 @@ func IPAddress(RemoteAddr string) (ipaddress string) {
 	return
 }
 
-//TimeStampToDate formatted date
+// TimeStampToDate formatted date
 func TimeStampToDate(timeStamp string) (dateFormated string) {
 
 	i, err := strconv.ParseInt(timeStamp, 10, 64)
@@ -476,7 +483,7 @@ func TimeStampToDate(timeStamp string) (dateFormated string) {
 	return
 }
 
-//ArrayValueExist Make sure a value exist in_array or not
+// ArrayValueExist Make sure a value exist in_array or not
 func ArrayValueExist(array []string, value string) bool {
 
 	indx := ReturnIndexByValue(array, value)
@@ -489,7 +496,7 @@ func ArrayValueExist(array []string, value string) bool {
 	return true
 }
 
-//ArrayFind Find a value in_array with its index number
+// ArrayFind Find a value in_array with its index number
 func ArrayFind(array []string, value string) (bool, int) {
 
 	indx := ReturnIndexByValue(array, value)
@@ -501,7 +508,7 @@ func ArrayFind(array []string, value string) (bool, int) {
 	return true, indx
 }
 
-//ArrayDiff Input two string array and get the difference value array
+// ArrayDiff Input two string array and get the difference value array
 func ArrayDiff(a, b []string) []string {
 	temp := map[string]int{}
 	for _, s := range a {
@@ -520,7 +527,7 @@ func ArrayDiff(a, b []string) []string {
 	return result
 }
 
-//ArrayDuplicate Get the duplicate value array from two different array
+// ArrayDuplicate Get the duplicate value array from two different array
 func ArrayDuplicate(a, b []string) []string {
 	temp := map[string]int{}
 	for _, s := range a {
@@ -539,7 +546,7 @@ func ArrayDuplicate(a, b []string) []string {
 	return result
 }
 
-//FuncMap Custom function repository used in template
+// FuncMap Custom function repository used in template
 var FuncMap = template.FuncMap{
 	"minus":             Mminus,
 	"mFormat":           Mformat,
@@ -567,7 +574,7 @@ var FuncMap = template.FuncMap{
 	"divideBy":          DivideBy,
 }
 
-//WishList check if product_id exist in whishlist
+// WishList check if product_id exist in whishlist
 func WishList(productID string, wisthList []map[string]interface{}) bool {
 
 	for _, row := range wisthList {
@@ -583,7 +590,7 @@ func WishList(productID string, wisthList []map[string]interface{}) bool {
 	return false
 }
 
-//ParseDimension for samsung/FDL company mobile handset only
+// ParseDimension for samsung/FDL company mobile handset only
 func ParseDimension(text, separator string) map[string]string {
 
 	slice := strings.Split(text, separator)
@@ -602,7 +609,7 @@ func ParseDimension(text, separator string) map[string]string {
 	return dimension
 }
 
-//StringToSlice create a slice using separator
+// StringToSlice create a slice using separator
 func StringToSlice(text, separator string) (slice []string) {
 
 	slice = strings.Split(text, separator) //separator=","
@@ -611,7 +618,7 @@ func StringToSlice(text, separator string) (slice []string) {
 
 }
 
-//ReplaceSpaceBy remove space by any given char
+// ReplaceSpaceBy remove space by any given char
 func ReplaceSpaceBy(productName, replaceby string) (formattedName string) {
 
 	//fmt.Println("product_name-2:", product_name)
@@ -621,7 +628,7 @@ func ReplaceSpaceBy(productName, replaceby string) (formattedName string) {
 
 }
 
-//SubTotal calculate total of a map
+// SubTotal calculate total of a map
 func SubTotal(data []map[string]interface{}) float64 {
 
 	var total float64
@@ -647,7 +654,7 @@ func getParams(regEx, url string) (paramsMap map[string]string) {
 	return
 }
 
-//LinkDetailsParser link string to map
+// LinkDetailsParser link string to map
 func LinkDetailsParser(data string) map[string]string {
 
 	//boldtxt:And more,off_upto:50%
@@ -679,7 +686,7 @@ func LinkDetailsParser(data string) map[string]string {
 
 }
 
-//MoneyFormat format any number to money format, comma separated
+// MoneyFormat format any number to money format, comma separated
 func MoneyFormat(amount interface{}) string {
 
 	//namount := fmt.Sprintf("%.f", amount)
@@ -688,7 +695,7 @@ func MoneyFormat(amount interface{}) string {
 
 }
 
-//GetLinkRowByField for template page
+// GetLinkRowByField for template page
 func GetLinkRowByField(tableRows []map[string]interface{}, fieldName, menuID string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
@@ -707,7 +714,7 @@ func GetLinkRowByField(tableRows []map[string]interface{}, fieldName, menuID str
 	return sRow
 }
 
-//GetLinkRow getMatchedRow for go template
+// GetLinkRow getMatchedRow for go template
 func GetLinkRow(tableRows []map[string]interface{}, imenuID string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
@@ -723,7 +730,7 @@ func GetLinkRow(tableRows []map[string]interface{}, imenuID string) (sRow []map[
 	return sRow
 }
 
-//GetMatchedRow for golang html template
+// GetMatchedRow for golang html template
 func GetMatchedRow(tableRows []map[string]interface{}, fieldName, matchValue string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
@@ -739,7 +746,7 @@ func GetMatchedRow(tableRows []map[string]interface{}, fieldName, matchValue str
 	return sRow
 }
 
-//GetImageMenus for link create purpose
+// GetImageMenus for link create purpose
 func GetImageMenus(tableRows []map[string]interface{}, menuID string) map[string]interface{} {
 
 	data := make(map[string]interface{}, 0)
@@ -766,7 +773,7 @@ func GetImageMenus(tableRows []map[string]interface{}, menuID string) map[string
 	return data
 }
 
-//GetTextMenus for text link
+// GetTextMenus for text link
 func GetTextMenus(tableRows []map[string]interface{}, menuID string) map[string]interface{} {
 
 	data := make(map[string]interface{}, 0)
@@ -793,7 +800,7 @@ func GetTextMenus(tableRows []map[string]interface{}, menuID string) map[string]
 	return data
 }
 
-//AmountFromDebitCredit to get which one has value not 0
+// AmountFromDebitCredit to get which one has value not 0
 func AmountFromDebitCredit(debit, credit interface{}) (famount string) {
 
 	sdebit := fmt.Sprintf("%v", debit)
@@ -808,7 +815,7 @@ func AmountFromDebitCredit(debit, credit interface{}) (famount string) {
 	return
 }
 
-//FormateDate date formatter
+// FormateDate date formatter
 func FormateDate(date string) (fdate string) {
 
 	inputFormat := "2006-01-02"
@@ -818,7 +825,7 @@ func FormateDate(date string) (fdate string) {
 	return
 }
 
-//GetSign Get a sign looking at voucher_name, used in transaction
+// GetSign Get a sign looking at voucher_name, used in transaction
 func GetSign(voucherName string) (sign string) {
 
 	plusAray := []string{"Balance Add", "Add", "Add Balance"}
@@ -836,7 +843,7 @@ func GetSign(voucherName string) (sign string) {
 	return
 }
 
-//GetFieldValue to get any field value
+// GetFieldValue to get any field value
 func GetFieldValue(tableRows []map[string]interface{}, fieldName, findMyName string) (sRow map[string]interface{}) {
 
 	//fmt.Println("ROWS: ", tableRows)
@@ -855,7 +862,7 @@ func GetFieldValue(tableRows []map[string]interface{}, fieldName, findMyName str
 
 }
 
-//Plus to Add two input in golang html template
+// Plus to Add two input in golang html template
 func Plus(a, b interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a)
@@ -867,7 +874,7 @@ func Plus(a, b interface{}) float64 {
 	return aflt + bflt
 }
 
-//DivideBy to division on golang html template
+// DivideBy to division on golang html template
 func DivideBy(a, b interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a)
@@ -879,7 +886,7 @@ func DivideBy(a, b interface{}) float64 {
 	return aflt / bflt
 }
 
-//Uplus to add multiple values
+// Uplus to add multiple values
 func Uplus(nums ...interface{}) string {
 
 	total := 0
@@ -892,7 +899,7 @@ func Uplus(nums ...interface{}) string {
 	return fmt.Sprintf("%v", total)
 }
 
-//AmountInWords any type amount to string type conversion
+// AmountInWords any type amount to string type conversion
 func AmountInWords(amount interface{}) (inwords string) {
 
 	astr := fmt.Sprintf("%v", amount)
@@ -901,8 +908,8 @@ func AmountInWords(amount interface{}) (inwords string) {
 	return
 }
 
-//MtoString Custom function for template,
-//Takes one input of any formate and convert it to string
+// MtoString Custom function for template,
+// Takes one input of any formate and convert it to string
 func MtoString(a interface{}) string {
 
 	astr := fmt.Sprintf("%v", a) //interface to string
@@ -910,8 +917,8 @@ func MtoString(a interface{}) string {
 	return astr
 }
 
-//Mminus Custom function for template,
-//Takes two input and return result after subtraction
+// Mminus Custom function for template,
+// Takes two input and return result after subtraction
 func Mminus(a, b interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a) //interface to string
@@ -922,9 +929,9 @@ func Mminus(a, b interface{}) float64 {
 	return x - y
 }
 
-//Mformat Custom function for template.
-//Takes an input (Any type including int,float64,string)
-//Return two decimal digit after the point/precision
+// Mformat Custom function for template.
+// Takes an input (Any type including int,float64,string)
+// Return two decimal digit after the point/precision
 func Mformat(a interface{}) string {
 
 	astr := fmt.Sprintf("%v", a) //interface to string
@@ -933,9 +940,9 @@ func Mformat(a interface{}) string {
 	return afmt
 }
 
-//MtoFloat64 Custom function for template.
-//Takes an input (Any type including int,float64,string)
-//Convert it to float64 and return
+// MtoFloat64 Custom function for template.
+// Takes an input (Any type including int,float64,string)
+// Convert it to float64 and return
 func MtoFloat64(a interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a)
@@ -943,7 +950,7 @@ func MtoFloat64(a interface{}) float64 {
 	return vflt
 }
 
-//RequestURLtoPage r.RequestURI to path and query string
+// RequestURLtoPage r.RequestURI to path and query string
 func RequestURLtoPage(requestURI string) (pageName, query string) {
 
 	purl, _ := url.Parse(requestURI)
@@ -954,7 +961,7 @@ func RequestURLtoPage(requestURI string) (pageName, query string) {
 	return
 }
 
-//PaddingLeft ..
+// PaddingLeft ..
 func PaddingLeft(seed interface{}, padStr string, length int) (retStr string) {
 
 	//padding := fmt.Sprintf("%dv", length) //8v
@@ -966,7 +973,7 @@ func PaddingLeft(seed interface{}, padStr string, length int) (retStr string) {
 	return retStr[(len(retStr) - length):]
 }
 
-//PaddingRight ...
+// PaddingRight ...
 func PaddingRight(seed interface{}, padStr string, length int) (retStr string) {
 
 	paddingString := fmt.Sprintf("%v", seed)
@@ -975,7 +982,7 @@ func PaddingRight(seed interface{}, padStr string, length int) (retStr string) {
 	return retStr[:length]
 }
 
-//GenerateBlockNumber unique hexa code
+// GenerateBlockNumber unique hexa code
 func GenerateBlockNumber() (blockNumber string) {
 
 	v1 := uuid.NewV1()
@@ -985,14 +992,14 @@ func GenerateBlockNumber() (blockNumber string) {
 	return
 }
 
-//GenerateLedgerNumber for accounting voucher
+// GenerateLedgerNumber for accounting voucher
 func GenerateLedgerNumber(prefix, suffix string) (ledgerNumber string) {
 
 	ledgerNumber = fmt.Sprintf("%v%08s", prefix, suffix)
 	return
 }
 
-//GenerateDocNumber to Generate random unique document number
+// GenerateDocNumber to Generate random unique document number
 func GenerateDocNumber(prefix string) (docNumber string) {
 
 	v1 := uuid.NewV1()
@@ -1003,7 +1010,7 @@ func GenerateDocNumber(prefix string) (docNumber string) {
 	return
 }
 
-//DateTimeParser datetime parser according to your format
+// DateTimeParser datetime parser according to your format
 func DateTimeParser(inputDateTime, inputFormat, outputFormat string) (datetime string) {
 
 	ptime, _ := time.Parse(inputFormat, inputDateTime)
@@ -1011,8 +1018,8 @@ func DateTimeParser(inputDateTime, inputFormat, outputFormat string) (datetime s
 	return datetime
 }
 
-//Sum input as many number as wish, get all number summation ex: 10.50,20.03,50.25
-//or slice ending with three dots[slice...]-> tool.Sum(aSlice...)
+// Sum input as many number as wish, get all number summation ex: 10.50,20.03,50.25
+// or slice ending with three dots[slice...]-> tool.Sum(aSlice...)
 func Sum(nums ...float64) (total float64) {
 
 	for _, num := range nums {
@@ -1021,7 +1028,7 @@ func Sum(nums ...float64) (total float64) {
 	return
 }
 
-//ReturnIndexByValue to Get index number by its value from a slice
+// ReturnIndexByValue to Get index number by its value from a slice
 func ReturnIndexByValue(s []string, val string) (index int) {
 
 	for index, v := range s {
@@ -1032,7 +1039,7 @@ func ReturnIndexByValue(s []string, val string) (index int) {
 	return -1
 }
 
-//RemoveFromSliceByValue Remove an item from a slice
+// RemoveFromSliceByValue Remove an item from a slice
 func RemoveFromSliceByValue(s []string, value string) []string {
 
 	index := ReturnIndexByValue(s, value)
@@ -1040,7 +1047,7 @@ func RemoveFromSliceByValue(s []string, value string) []string {
 	return na
 }
 
-//RemoveFromSlice Remove an item from a slice
+// RemoveFromSlice Remove an item from a slice
 func RemoveFromSlice(s []string, i int) []string {
 
 	//a := []string{"A", "B", "C", "D", "E"}
@@ -1059,7 +1066,7 @@ func RemoveFromSlice(s []string, i int) []string {
 
 }
 
-//ErrorInSlice to detect error in a string
+// ErrorInSlice to detect error in a string
 func ErrorInSlice(slice []string, val string) (int, bool) {
 
 	for i, item := range slice {
@@ -1081,7 +1088,7 @@ func StringInSlice(slice []string, val string) (int, bool) {
 	return -1, false
 }
 
-//Call advance func used in
+// Call advance func used in
 func Call(m map[string]interface{}, name string, params ...interface{}) (result []reflect.Value, err error) {
 
 	f := reflect.ValueOf(m[name])
@@ -1252,7 +1259,7 @@ func DayCountBetweenTwoDates(startDate, endDate string) int {
 	return dayCount
 }
 
-//Generics implementation, golang version 1.18 required
+// Generics implementation, golang version 1.18 required
 func SliceValueExist[T comparable](s []T, v T) bool {
 	for _, val := range s {
 		if v == val {
