@@ -114,7 +114,7 @@ func StructToFields(structRef interface{}) []string {
 // HashCompare compare plaintext password with hash text
 func HashCompare(password, hashpassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashpassword), []byte(password))
-	return err != nil
+	return err == nil
 }
 
 // HashBcrypt Generate string to hash
