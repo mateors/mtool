@@ -26,37 +26,32 @@ import (
 	"github.com/mateors/money"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // ToString take one argument of any dataType and convert into string
 func ToString(data interface{}) string {
-
 	return fmt.Sprintf("%v", data)
-
 }
 
 // TimeNow current system time mysql datetime format
 // 2006-01-02 15:04:05 = 4digitYear-2digitMonth-2digitDate 24HourFormatHour:minute:second
 func TimeNow() string {
 	t1 := time.Now()
-	createDate := t1.Format("2006-01-02 15:04:05")
-	return createDate
+	return t1.Format("2006-01-02 15:04:05")
 }
 
 // TimeNowFormatted "2006-01-02 15:04:05"
 // Any format you wish as an output
 func TimeNowFormatted(timeFormat string) string {
 	t1 := time.Now()
-	createDate := t1.Format(timeFormat)
-	return createDate
+	return t1.Format(timeFormat)
 }
 
 // GetVarType any variable to its underlysing data type
 func GetVarType(myvar interface{}) string {
-
-	varType := reflect.TypeOf(myvar).Kind().String()
-
-	return varType
+	return reflect.TypeOf(myvar).Kind().String()
 }
 
 // GetStructName get struct to its name
@@ -64,7 +59,6 @@ func GetStructName(myvar interface{}) string {
 
 	var structName string
 	valueOf := reflect.ValueOf(myvar)
-
 	if valueOf.Type().Kind() == reflect.Ptr {
 		structName = reflect.Indirect(valueOf).Type().Name()
 	} else {
@@ -78,13 +72,11 @@ func MapToCleanFieldSlice(sfMap map[string]string) []string {
 
 	var fields = []string{}
 	for k := range sfMap {
-		//fmt.Println(">", k)
 		v := strings.Split(k, ",")
 		if len(v) > 0 {
 			fields = append(fields, v[0])
 		}
 	}
-
 	return fields
 }
 
@@ -99,7 +91,7 @@ func StructToFieldsType(structRef interface{}) map[string]string {
 		f := iVal.Field(i)
 		tag := typ.Field(i).Tag.Get("json")
 		vtype := f.Kind().String()
-		if _, isExist := oMap[tag]; isExist == false {
+		if _, isExist := oMap[tag]; !isExist {
 			oMap[tag] = vtype
 		}
 	}
@@ -121,13 +113,8 @@ func StructToFields(structRef interface{}) []string {
 
 // HashCompare compare plaintext password with hash text
 func HashCompare(password, hashpassword string) bool {
-
 	err := bcrypt.CompareHashAndPassword([]byte(hashpassword), []byte(password))
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err != nil
 }
 
 // HashBcrypt Generate string to hash
@@ -147,7 +134,6 @@ func EncodeStr(text, password string) (hexcode string) {
 
 	ciphertext, err := encrypt([]byte(text), password)
 	if err != nil {
-		log.Println(err)
 		return ""
 	}
 	hexcode = fmt.Sprintf("%x", ciphertext)
@@ -159,14 +145,13 @@ func DecodeStr(hexcode, password string) (plaintext string) {
 
 	data, err := hex.DecodeString(hexcode)
 	if err != nil {
-		log.Println(err)
 		return ""
 	}
 	byteStr, err := decrypt(data, password)
 	if err != nil {
 		return ""
 	}
-	plaintext = string(byteStr)
+	plaintext = fmt.Sprintf("%v", byteStr)
 	return
 }
 
@@ -219,7 +204,6 @@ func ValueType(v interface{}) string {
 
 // GetMapValue safer way to get value from map
 func GetMapValue(mapData map[string]string, key string) (val string) {
-
 	if v, isOk := mapData[key]; isOk {
 		val = v
 	}
@@ -242,13 +226,10 @@ func StringToMap(output string) map[string]string {
 
 	sMap := make(map[string]string, 0)
 	slice := strings.Split(output, ",")
-
 	for _, val := range slice {
-		//slc := strings.Split(val, ":")
 		slc := RegExFindMatch(`([a-zA-Z_]*):(.*)`, val)
 		if len(slc) == 3 {
 			sMap[slc[1]] = slc[2]
-			//fmt.Println(slc[1], "-->", len(slc[1]))
 		}
 	}
 	return sMap
@@ -317,36 +298,26 @@ func ReadUserIP(r *http.Request) string {
 	}
 
 	IPAddress = r.RemoteAddr
-	if IPAddress != "" {
-		//fmt.Println("IP Detect using r.RemoteAddr::", IPAddress, r.Referer(), xforward)
-	}
-
 	if IPAddress == "" {
 		fmt.Println("IP Detect using ReadUserIP:: NO IP FOUND", r.Referer())
 	}
-
 	return IPAddress
 }
 
 // StartEndDate takes two argument, both are string, dateTime="", layout := "2006-01-02 03:04:05"
 func StartEndDate(dateTime, layout string) (startDate, endDate string) {
 
-	//layout := "2006-01-02 03:04:05"
 	var dtime time.Time
-
 	if dateTime == "" {
 		dtime = time.Now()
 
 	} else {
 		dtime, _ = time.Parse(layout, dateTime)
 	}
-
 	bom := dtime.AddDate(0, 0, -dtime.Day()+1)
 	eom := dtime.AddDate(0, 1, -dtime.Day())
-
 	startDate = bom.Format(layout)
 	endDate = eom.Format(layout)
-
 	return
 }
 
@@ -355,14 +326,16 @@ func GenerateVisitorSession() string {
 
 	v1 := uuid.NewV1()
 	v1string := fmt.Sprintf("%v", v1)
-
 	return strings.ToUpper(v1string)
 }
 
 func formatCommas(num int) string {
 
 	str := fmt.Sprintf("%d", num)
-	re := regexp.MustCompile("(\\d+)(\\d{3})")
+	re, err := regexp.Compile(`(d+)(d{3})`)
+	if err != nil {
+		return ""
+	}
 	for n := ""; n != str; {
 		n = str
 		str = re.ReplaceAllString(str, "$1,$2")
@@ -377,9 +350,7 @@ func CleanText(example string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	processedString := reg.ReplaceAllString(example, "")
-
-	return processedString
+	return reg.ReplaceAllString(example, "")
 }
 
 // SQLNullString for sql null char
@@ -389,7 +360,6 @@ func SQLNullString(s interface{}) sql.NullString {
 	if len(d) == 0 {
 		return sql.NullString{}
 	}
-
 	return sql.NullString{
 		String: d,
 		Valid:  true,
@@ -407,7 +377,6 @@ func BrowserInfo2(userAgent string) map[string]string {
 	info["browser_version"] = fmt.Sprintf("%s %v.%v.%v", ua.Browser.Name.StringTrimPrefix(), ua.Browser.Version.Major, ua.Browser.Version.Minor, ua.Browser.Version.Patch)
 	info["os_version"] = fmt.Sprintf("%s %v", ua.OS.Name.StringTrimPrefix(), ua.OS.Version.Major)
 	info["platform"] = ua.OS.Platform.StringTrimPrefix()
-
 	return info
 }
 
@@ -415,7 +384,6 @@ func BrowserInfo2(userAgent string) map[string]string {
 func BrowserInfo(userAgent, battery string) map[string]string {
 
 	info := make(map[string]string, 0)
-
 	//myUA := "User-agent header: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
 	// Parse() returns all attributes, including returning the full UA string last
 	ua := uasurfer.Parse(userAgent)
@@ -430,12 +398,10 @@ func BrowserInfo(userAgent, battery string) map[string]string {
 	} else {
 		//device=device
 	}
-
 	info["device"] = device
 	info["browser_version"] = fmt.Sprintf("%s %v.%v.%v", ua.Browser.Name.StringTrimPrefix(), ua.Browser.Version.Major, ua.Browser.Version.Minor, ua.Browser.Version.Patch)
 	info["os_version"] = fmt.Sprintf("%s %v", ua.OS.Name.StringTrimPrefix(), ua.OS.Version.Major)
 	info["platform"] = ua.OS.Platform.StringTrimPrefix()
-
 	return info
 
 }
@@ -613,19 +579,13 @@ func ParseDimension(text, separator string) map[string]string {
 func StringToSlice(text, separator string) (slice []string) {
 
 	slice = strings.Split(text, separator) //separator=","
-
 	return
-
 }
 
 // ReplaceSpaceBy remove space by any given char
 func ReplaceSpaceBy(productName, replaceby string) (formattedName string) {
-
-	//fmt.Println("product_name-2:", product_name)
 	formattedName = strings.Replace(productName, " ", "-", -1)
-
 	return
-
 }
 
 // SubTotal calculate total of a map
@@ -636,7 +596,6 @@ func SubTotal(data []map[string]interface{}) float64 {
 		payableAmount, _ := strconv.ParseFloat(row["payable_amount"].(string), 64)
 		total += payableAmount
 	}
-
 	return total
 }
 
@@ -644,7 +603,6 @@ func getParams(regEx, url string) (paramsMap map[string]string) {
 
 	var compRegEx = regexp.MustCompile(regEx)
 	match := compRegEx.FindStringSubmatch(url)
-
 	paramsMap = make(map[string]string)
 	for i, name := range compRegEx.SubexpNames() {
 		if i > 0 && i <= len(match) {
@@ -657,60 +615,36 @@ func getParams(regEx, url string) (paramsMap map[string]string) {
 // LinkDetailsParser link string to map
 func LinkDetailsParser(data string) map[string]string {
 
-	//boldtxt:And more,off_upto:50%
-	//boldtxt:Arrives,from:990
-	//fmt.Println(data, len(data))
-
-	//boldtxt:And more,off_upto:50
-	// pattern := []string{`(?P<name>.*):,(?P<off_upto>:.*)`, `^boldtxt:(.*),from:(\d+),sign:(.*)`}
-	// for _, ptxt := range pattern {
-	// 	match = getParams(ptxt, data)
-	// 	if len(match) > 0 {
-	// 		return match
-	// 	}
-	// }
-
 	match := make(map[string]string, 0)
-	//boldtxt:And more,off_upto:50%,name:discount
 	sA := strings.Split(data, ",")
 	for _, v := range sA {
 		vA := strings.Split(v, ":")
 		key := vA[0]
 		val := vA[1]
 		_, keyExist := match[key]
-		if keyExist == false {
+		if !keyExist {
 			match[key] = val
 		}
 	}
 	return match
-
 }
 
 // MoneyFormat format any number to money format, comma separated
 func MoneyFormat(amount interface{}) string {
-
-	//namount := fmt.Sprintf("%.f", amount)
 	fmoney := money.CommaSeparatedMoneyFormat(amount)
 	return strings.TrimRight(strings.TrimRight(fmoney, "0"), ".")
-
 }
 
 // GetLinkRowByField for template page
 func GetLinkRowByField(tableRows []map[string]interface{}, fieldName, menuID string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
-
 		fieldVal := rMap[fieldName].(string) //product_id
 		linkID := rMap["link_id"].(string)
-
 		if fieldVal == menuID && len(linkID) > 0 {
-			//sRow = rMap
 			sRow = append(sRow, rMap)
-			//fmt.Println(fvalue, "MATCH FOUND", rMap)
 		}
-
 	}
-
 	return sRow
 }
 
@@ -718,15 +652,12 @@ func GetLinkRowByField(tableRows []map[string]interface{}, fieldName, menuID str
 func GetLinkRow(tableRows []map[string]interface{}, imenuID string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
-
-		menuID := rMap["menu_id"].(string) //product_id
+		menuID := rMap["menu_id"].(string)
 		linkID := rMap["link_id"].(string)
-
 		if menuID == imenuID && len(linkID) > 0 {
 			sRow = append(sRow, rMap)
 		}
 	}
-
 	return sRow
 }
 
@@ -734,13 +665,9 @@ func GetLinkRow(tableRows []map[string]interface{}, imenuID string) (sRow []map[
 func GetMatchedRow(tableRows []map[string]interface{}, fieldName, matchValue string) (sRow []map[string]interface{}) {
 
 	for _, rMap := range tableRows {
-
-		fvalue := rMap[fieldName].(string) //product_id
-
+		fvalue := rMap[fieldName].(string)
 		if fvalue == matchValue {
-			//sRow = rMap
 			sRow = append(sRow, rMap)
-			//fmt.Println(fvalue, "MATCH FOUND", rMap)
 		}
 	}
 	return sRow
@@ -750,26 +677,18 @@ func GetMatchedRow(tableRows []map[string]interface{}, fieldName, matchValue str
 func GetImageMenus(tableRows []map[string]interface{}, menuID string) map[string]interface{} {
 
 	data := make(map[string]interface{}, 0)
-
 	for _, rMap := range tableRows {
 
-		fvalue := rMap["parent"].(string) //product_id
+		fvalue := rMap["parent"].(string)
 		image := rMap["image"].(string)
-
 		if fvalue == menuID && image != "" {
-
 			linkURL := rMap["link_url"].(string)
-			//menu_id := rMap["menu_id"]
 			_, ok := data[linkURL]
-			if ok == false {
+			if !ok {
 				data[linkURL] = image
 			}
-
-			//fmt.Println(fvalue, "IMAGE FOUND", image)
 		}
-
 	}
-
 	return data
 }
 
@@ -777,26 +696,19 @@ func GetImageMenus(tableRows []map[string]interface{}, menuID string) map[string
 func GetTextMenus(tableRows []map[string]interface{}, menuID string) map[string]interface{} {
 
 	data := make(map[string]interface{}, 0)
-
 	for _, rMap := range tableRows {
 
 		fvalue := rMap["parent"].(string) //product_id
 		image := rMap["image"].(string)
-
 		if fvalue == menuID && image == "" {
-			//sRow = rMap
-			//sRow = append(sRow, rMap)
 			menuName := rMap["menu_name"].(string)
 			menuID := rMap["menu_id"]
 			_, ok := data[menuName]
-			if ok == false {
+			if !ok {
 				data[menuName] = menuID
 			}
-			//fmt.Println(fvalue, "MATCH FOUND", data, image)
 		}
-
 	}
-
 	return data
 }
 
@@ -821,7 +733,6 @@ func FormateDate(date string) (fdate string) {
 	inputFormat := "2006-01-02"
 	outputFormat := "02/01/06"
 	fdate = DateTimeParser(date, inputFormat, outputFormat)
-
 	return
 }
 
@@ -834,32 +745,25 @@ func GetSign(voucherName string) (sign string) {
 	_, inPlus := StringInSlice(plusAray, voucherName)
 	_, inMinus := StringInSlice(minusAray, voucherName)
 
-	if inPlus == true {
+	if inPlus {
 		sign = "+"
-	} else if inMinus == true {
+	} else if inMinus {
 		sign = "-"
 	}
-
 	return
 }
 
 // GetFieldValue to get any field value
 func GetFieldValue(tableRows []map[string]interface{}, fieldName, findMyName string) (sRow map[string]interface{}) {
 
-	//fmt.Println("ROWS: ", tableRows)
 	for _, rMap := range tableRows {
-
-		fvalue := rMap[fieldName].(string) //product_id
+		fvalue := rMap[fieldName].(string)
 		if fvalue == findMyName {
 			sRow = rMap
-			//fmt.Println("MATCH FOUND", rMap)
 			return
 		}
-
 	}
-
 	return nil
-
 }
 
 // Plus to Add two input in golang html template
@@ -867,10 +771,8 @@ func Plus(a, b interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a)
 	bstr := fmt.Sprintf("%v", b)
-
 	aflt, _ := strconv.ParseFloat(astr, 64)
 	bflt, _ := strconv.ParseFloat(bstr, 64)
-
 	return aflt + bflt
 }
 
@@ -879,10 +781,8 @@ func DivideBy(a, b interface{}) float64 {
 
 	astr := fmt.Sprintf("%v", a)
 	bstr := fmt.Sprintf("%v", b)
-
 	aflt, _ := strconv.ParseFloat(astr, 64)
 	bflt, _ := strconv.ParseFloat(bstr, 64)
-
 	return aflt / bflt
 }
 
@@ -895,26 +795,26 @@ func Uplus(nums ...interface{}) string {
 		number, _ := strconv.Atoi(numstr)
 		total += number
 	}
-
 	return fmt.Sprintf("%v", total)
+}
+
+func ToTitle(str string) string {
+	caser := cases.Title(language.English)
+	return caser.String(str)
 }
 
 // AmountInWords any type amount to string type conversion
 func AmountInWords(amount interface{}) (inwords string) {
-
 	astr := fmt.Sprintf("%v", amount)
 	aflt, _ := strconv.ParseFloat(astr, 64)
-	inwords = strings.Title(ConvertAnd(int(aflt)))
+	inwords = ToTitle(ConvertAnd(int(aflt)))
 	return
 }
 
 // MtoString Custom function for template,
 // Takes one input of any formate and convert it to string
 func MtoString(a interface{}) string {
-
-	astr := fmt.Sprintf("%v", a) //interface to string
-	//fmt.Printf("\n\na: %v\n", astr)
-	return astr
+	return fmt.Sprintf("%v", a) //interface to string
 }
 
 // Mminus Custom function for template,
@@ -957,16 +857,12 @@ func RequestURLtoPage(requestURI string) (pageName, query string) {
 	path := strings.TrimLeft(purl.Path, "/")
 	pageName = strings.Replace(path, "/", "_", -1)
 	query = purl.RawQuery
-
 	return
 }
 
 // PaddingLeft ..
 func PaddingLeft(seed interface{}, padStr string, length int) (retStr string) {
 
-	//padding := fmt.Sprintf("%dv", length) //8v
-	//pattern := "%0" + padding             //%08v
-	//paddingString = fmt.Sprintf(pattern, seed)
 	paddingString := fmt.Sprintf("%v", seed)
 	var padCountInt = 1 + ((length - len(padStr)) / len(padStr))
 	retStr = strings.Repeat(padStr, padCountInt) + paddingString
@@ -987,9 +883,7 @@ func GenerateBlockNumber() (blockNumber string) {
 
 	v1 := uuid.NewV1()
 	v1string := fmt.Sprintf("%x", v1)
-	blockNumber = strings.ToUpper(v1string[0:12])
-
-	return
+	return strings.ToUpper(v1string[0:12])
 }
 
 // GenerateLedgerNumber for accounting voucher
@@ -1006,7 +900,6 @@ func GenerateDocNumber(prefix string) (docNumber string) {
 	v1string := fmt.Sprintf("%s", v1)
 	randomValue := strings.ToUpper(v1string[0:8])
 	docNumber = fmt.Sprintf("%v%v", prefix, randomValue)
-
 	return
 }
 
@@ -1021,7 +914,6 @@ func DateTimeParser(inputDateTime, inputFormat, outputFormat string) (datetime s
 // Sum input as many number as wish, get all number summation ex: 10.50,20.03,50.25
 // or slice ending with three dots[slice...]-> tool.Sum(aSlice...)
 func Sum(nums ...float64) (total float64) {
-
 	for _, num := range nums {
 		total += num
 	}
@@ -1049,29 +941,14 @@ func RemoveFromSliceByValue(s []string, value string) []string {
 
 // RemoveFromSlice Remove an item from a slice
 func RemoveFromSlice(s []string, i int) []string {
-
-	//a := []string{"A", "B", "C", "D", "E"}
-	//i := 2
-
-	// Remove the element at index i from a.
-	//a[i] = a[len(a)-1] // Copy last element to index i.
-	//A, B, E, D, -
-	//0-3=A,B,E,D
-	//a[len(a)-1] = ""   // Erase last element (write zero value).
-	//a = a[:len(a)-1]   // Truncate slice.
-	//s[i] = s[len(s)-1]
-	//s[:len(s)-1]
 	a := append(s[:i], s[i+1:]...)
 	return a
-
 }
 
 // ErrorInSlice to detect error in a string
 func ErrorInSlice(slice []string, val string) (int, bool) {
 
 	for i, item := range slice {
-
-		//strings.Contains(item, "ERROR")
 		if strings.Contains(item, val) == true {
 			return i, true
 		}
@@ -1100,7 +977,6 @@ func Call(m map[string]interface{}, name string, params ...interface{}) (result 
 	for k, param := range params {
 		in[k] = reflect.ValueOf(param)
 	}
-
 	result = f.Call(in)
 	return
 
@@ -1151,7 +1027,6 @@ func convert(number int, useAnd bool) string {
 		groups[i] = digitGroup(math.Mod(positive, 1000))
 		positive /= 1000
 	}
-
 	var textGroup [groupsNumber]string
 	for i := 0; i < groupsNumber; i++ {
 		textGroup[i] = digitGroup2Text(groups[i], useAnd)
@@ -1161,22 +1036,18 @@ func convert(number int, useAnd bool) string {
 
 	for i := 1; i < groupsNumber; i++ {
 		if groups[i] != 0 {
-			prefix := textGroup[i] + " " + _scaleNumbers[i]
 
+			prefix := textGroup[i] + " " + _scaleNumbers[i]
 			if len(combined) != 0 {
 				prefix += separator(and)
 			}
-
 			and = false
-
 			combined = prefix + combined
 		}
 	}
-
 	if number < 0 {
 		combined = "minus " + combined
 	}
-
 	return combined
 }
 
@@ -1208,7 +1079,6 @@ func digitGroup2Text(group digitGroup, useAnd bool) (ret string) {
 	} else if tensUnits != 0 {
 		ret += _smallNumbers[tensUnits]
 	}
-
 	return
 }
 
