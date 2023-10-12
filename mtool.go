@@ -151,7 +151,7 @@ func DecodeStr(hexcode, password string) (plaintext string) {
 	if err != nil {
 		return ""
 	}
-	plaintext = fmt.Sprintf("%v", byteStr)
+	plaintext = fmt.Sprintf("%s", byteStr)
 	return
 }
 
