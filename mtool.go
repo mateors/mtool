@@ -129,15 +129,22 @@ func HashBcrypt(password string) (hash string) {
 	return
 }
 
-// EncodeStr ------------
 func EncodeStr(text, password string) (hexcode string) {
+	defer func() {
+		if r := recover(); r != nil {
+			hexcode = ""
+		}
+	}()
 
-	ciphertext, err := encrypt([]byte(text), password)
-	if err != nil {
+	if text == "" || password == "" {
 		return ""
 	}
-	hexcode = fmt.Sprintf("%x", ciphertext)
-	return
+
+	ciphertext, err := encrypt([]byte(text), password)
+	if err != nil || len(ciphertext) == 0 {
+		return ""
+	}
+	return hex.EncodeToString(ciphertext)
 }
 
 func DecodeStr(hexcode, password string) (plaintext string) {
