@@ -140,19 +140,27 @@ func EncodeStr(text, password string) (hexcode string) {
 	return
 }
 
-// DecodeStr ...
 func DecodeStr(hexcode, password string) (plaintext string) {
+	defer func() {
+		if r := recover(); r != nil {
+			plaintext = ""
+		}
+	}()
 
-	data, err := hex.DecodeString(hexcode)
-	if err != nil {
+	if hexcode == "" || password == "" {
 		return ""
 	}
+
+	data, err := hex.DecodeString(hexcode)
+	if err != nil || len(data) == 0 {
+		return ""
+	}
+
 	byteStr, err := decrypt(data, password)
 	if err != nil {
 		return ""
 	}
-	plaintext = fmt.Sprintf("%s", byteStr)
-	return
+	return string(byteStr)
 }
 
 func createHash(key string) string {
